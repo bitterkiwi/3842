@@ -1,0 +1,150 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+
+/**
+ * Base
+ */
+// Canvas
+const canvas = document.querySelector('canvas.webgl');
+
+// Scene
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff); // White background
+
+/**
+ * Floor
+ */
+const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xeaeaea, roughness: 0.8 });
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), floorMaterial);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = 0;
+floor.receiveShadow = true;
+scene.add(floor);
+
+/**
+ * Tulip
+ */
+
+
+// Stem
+const stemMaterial = new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.8 });
+const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 32);
+const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+stem.position.set(0, 1, 0);
+stem.castShadow = true;
+scene.add(stem);
+
+// Petals
+const petalMaterial = new THREE.MeshStandardMaterial({
+  color: 0xff3366, // Vibrant pink-red tulip color
+  roughness: 0.6,
+  side: THREE.DoubleSide,
+});
+
+const petalGeometry = new THREE.ShapeGeometry(new THREE.Shape([
+  new THREE.Vector2(0, 0),
+  new THREE.Vector2(0.2, 1),
+  new THREE.Vector2(0, 2),
+  new THREE.Vector2(-0.2, 1),
+]));
+
+const petals = [];
+const petalCount = 6;
+
+for (let i = 0; i < petalCount; i++) {
+  const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+  petal.position.y = 2; // Place petals at the top of the stem
+  petal.rotation.y = (i / petalCount) * Math.PI * 2; // Distribute around the center
+  petal.rotation.z = Math.PI / 8; // Slight tilt for realism
+  scene.add(petal);
+  petals.push(petal);
+}
+
+// Leaves
+const leafMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2e8b57, // Dark green for leaves
+  roughness: 0.8,
+  side: THREE.DoubleSide,
+});
+
+const leafGeometry = new THREE.ShapeGeometry(new THREE.Shape([
+  new THREE.Vector2(0, 0),
+  new THREE.Vector2(0.3, 0.7),
+  new THREE.Vector2(0, 1.5),
+  new THREE.Vector2(-0.3, 0.7),
+]));
+
+const leaves = [];
+const leafCount = 2;
+
+for (let i = 0; i < leafCount; i++) {
+  const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+  leaf.position.y = 0.5; // Position leaves near the base
+  leaf.rotation.z = Math.PI / 6; // Slight tilt
+  leaf.rotation.y = (i / leafCount) * Math.PI; // Spread on opposite sides
+  scene.add(leaf);
+  leaves.push(leaf);
+}
+
+/**
+ * Lighting
+ */
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+directionalLight.position.set(5, 10, 5);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+scene.add(ambientLight);
+
+/**
+ * Camera
+ */
+const sizes = {
+  width: window.innerWidth,
+  height: window.innerHeight,
+};
+
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 100);
+camera.position.set(0, 3, 6);
+scene.add(camera);
+
+/**
+ * Renderer
+ */
+const renderer = new THREE.WebGLRenderer({
+  canvas: canvas,
+  antialias: true,
+});
+renderer.setSize(sizes.width, sizes.height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+
+// Handle Resize
+window.addEventListener('resize', () => {
+  sizes.width = window.innerWidth;
+  sizes.height = window.innerHeight;
+
+  camera.aspect = sizes.width / sizes.height;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
+
+/**
+ * Controls
+ */
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+/**
+ * Animate
+ */
+const tick = () => {
+  controls.update(); // Smooth control updates
+  renderer.render(scene, camera);
+  window.requestAnimationFrame(tick);
+};
+
+tick();

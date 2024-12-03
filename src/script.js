@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'; //delflower
 
 /**
  * Base
@@ -8,6 +9,69 @@ const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
+
+
+const stemMaterial = new THREE.MeshStandardMaterial({ color: 0x4caf50, roughness: 0.8 });
+const stemGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 32);
+const stem = new THREE.Mesh(stemGeometry, stemMaterial);
+stem.position.set(0, 1, 0);
+stem.castShadow = true;
+scene.add(stem);
+
+// Petals
+const petalMaterial = new THREE.MeshStandardMaterial({
+  color: 0xff3366, // Vibrant pink-red tulip color
+  roughness: 0.6,
+  side: THREE.DoubleSide,
+});
+
+const petalGeometry = new THREE.ShapeGeometry(new THREE.Shape([
+  new THREE.Vector2(0, 0),
+  new THREE.Vector2(0.2, 1),
+  new THREE.Vector2(0, 2),
+  new THREE.Vector2(-0.2, 1),
+]));
+
+const petals = [];
+const petalCount = 6;
+
+for (let i = 0; i < petalCount; i++) {
+  const petal = new THREE.Mesh(petalGeometry, petalMaterial);
+  petal.position.y = 2; // Place petals at the top of the stem
+  petal.rotation.y = (i / petalCount) * Math.PI * 2; // Distribute around the center
+  petal.rotation.z = Math.PI / 8; // Slight tilt for realism
+  scene.add(petal);
+  petals.push(petal);
+}
+
+// Leaves
+const leafMaterial = new THREE.MeshStandardMaterial({
+  color: 0x2e8b57, // Dark green for leaves
+  roughness: 0.8,
+  side: THREE.DoubleSide,
+});
+
+const leafGeometry = new THREE.ShapeGeometry(new THREE.Shape([
+  new THREE.Vector2(0, 0),
+  new THREE.Vector2(0.3, 0.7),
+  new THREE.Vector2(0, 1.5),
+  new THREE.Vector2(-0.3, 0.7),
+]));
+
+const leaves = [];
+const leafCount = 2;
+
+for (let i = 0; i < leafCount; i++) {
+  const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+  leaf.position.y = 0.5; // Position leaves near the base
+  leaf.rotation.z = Math.PI / 6; // Slight tilt
+  leaf.rotation.y = (i / leafCount) * Math.PI; // Spread on opposite sides
+  scene.add(leaf);
+  leaves.push(leaf);
+}
+
+
+
 
 /**
  * Checkerboard Texture for Floor
@@ -135,9 +199,9 @@ window.addEventListener('keyup', (event) => {
  * Ball Bouncing Logic
  */
 let velocity = 0
-let gravity = -0.05 // Gravity pulling the ball down
+let gravity = -0.05 // Gravity pulling the ball down    -0.05
 let bounceFactor = 1 // The factor that determines how much energy is conserved after bouncing
-let minVelocity = 0.05 // Minimum velocity before the ball stops bouncing
+let minVelocity = 0.0004 // Minimum velocity before the ball stops bouncing
 
 const updateBall = () => {
   // Update ball position and velocity based on gravity
@@ -207,12 +271,13 @@ const tick = () => {
 
   // Update ball position based on gravity and bouncing
   updateBall()
-
-  // Camera follows the ball
+  console.log(ball.position)
+  /*Camera follows the ball
   camera.position.x = ball.position.x
   camera.position.y = ball.position.y + 10 // Keep the camera slightly above the ball
   camera.position.z = ball.position.z + 40 // Keep the camera at a distance from the ball
   camera.lookAt(ball.position) // Make the camera look at the ball
+  */
 
   // Render
   renderer.render(scene, camera)
@@ -222,3 +287,5 @@ const tick = () => {
 }
 
 tick()
+
+
